@@ -925,10 +925,20 @@ def run(
         if keep_existing_results and result_zip.is_file():
             logger.info(f"Skipping {jobname} (result.zip)")
             continue
+
         # In the local version we use a marker file
         is_done_marker = result_dir.joinpath(jobname + ".done.txt")
         if keep_existing_results and is_done_marker.is_file():
             logger.info(f"Skipping {jobname} (already done)")
+            continue
+
+        # Outdated run
+        last_pdb_file = f"{jobname}_unrelaxed_model_{num_models}_rank*.pdb"
+        # this generates a list of all files that match the regular expression. if there are no files, the result is an empty list
+        pdb_file = list(result_dir.glob(last_pdb_file))
+        if keep_existing_results and len(pdb_file) != 0:
+            logger.info(f"Skipping {jobname} (pdb)")
+            is_done_marker.touch()
             continue
 
         query_sequence_len = (
